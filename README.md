@@ -105,6 +105,7 @@ Then open [http://localhost:3000](http://localhost:3000).
 #### 1. Set up Convex Auth
 
 ```bash
+npm install @convex-dev/auth @auth/core@0.37.0
 npx @convex-dev/auth
 ```
 
