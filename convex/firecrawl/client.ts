@@ -1,3 +1,5 @@
+"use node";
+
 import FirecrawlApp from "@mendable/firecrawl-js";
 
 export const getFirecrawlClient = () => {
