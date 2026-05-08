@@ -51,7 +51,13 @@ export function NavUser() {
     return (
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuButton render={<Link href="/login" />} tooltip={"Login"}>
+          <SidebarMenuButton
+            render={<Link href="/login" />}
+            tooltip={{
+              children: "Login",
+              hidden: false,
+            }}
+          >
             <UserCircle />
             <span>Login</span>
           </SidebarMenuButton>
