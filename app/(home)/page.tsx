@@ -1,40 +1,31 @@
-"use client";
+import { AppSidebar } from "@/components/app-sidebar";
+import { Map, MapControls } from "@/components/ui/map";
 
-import { useMemo, useState } from "react";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { destinationCountries, immigrationPathways } from "./data";
-import { FilterSidebar } from "./components/filter-sidebar";
-import { NetworkMap } from "./components/network-map";
-import { defaultProfile, scoreDestinations } from "@/lib/scoring";
+import { Input } from "@/components/ui/input";
 
 export default function Page() {
-  const [profile, setProfile] = useState(defaultProfile);
-  const scores = useMemo(
-    () => scoreDestinations(profile, destinationCountries, immigrationPathways),
-    [profile],
-  );
-  const [selectedCountryId, setSelectedCountryId] = useState(
-    scores[0]?.countryId ?? destinationCountries[0].id,
-  );
-
   return (
-    <SidebarProvider>
-      <FilterSidebar
-        profile={profile}
-        countries={destinationCountries}
-        scores={scores}
-        selectedCountryId={selectedCountryId}
-        onProfileChange={setProfile}
-        onSelectCountry={setSelectedCountryId}
-      />
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "350px",
+        } as React.CSSProperties
+      }
+    >
+      <AppSidebar />
       <SidebarInset>
-        <NetworkMap
-          countries={destinationCountries}
-          pathways={immigrationPathways}
-          scores={scores}
-          selectedCountryId={selectedCountryId}
-          onSelectCountry={setSelectedCountryId}
-        />
+        <div className="relative h-full">
+          <div className="border-border/40 bg-background/70 absolute top-3.5 left-4 z-20 flex items-center gap-3 rounded-lg border backdrop-blur-sm">
+            <Input
+              placeholder="Search destination country or pathway..."
+              className="max-w-sm md:w-md"
+            />
+          </div>
+          <Map center={[18, 18]} zoom={1.5} projection={{ type: "globe" }}>
+            <MapControls showCompass showFullscreen />
+          </Map>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );

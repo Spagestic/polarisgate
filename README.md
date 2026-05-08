@@ -110,56 +110,6 @@ This starts the Convex dev server and pushes your schema and functions to your d
 
 ---
 
-## Project Structure
-
-```
-Polaris Gate/
-├── app/                        # Next.js App Router
-│   ├── (auth)/                 # Auth routes (sign-in, sign-up)
-│   ├── api/
-│   │   ├── routes/search/      # POST /api/routes/search — agent endpoint
-│   │   └── score/              # POST /api/score — profile → country scores
-│   ├── globe/                  # Globe page
-│   └── layout.tsx
-│
-├── components/
-│   ├── globe/
-│   │   ├── GlobeMap.tsx        # mapcn / MapLibre 3D globe
-│   │   ├── CountryLayer.tsx    # fill-color expression + click handler
-│   │   └── Tooltip.tsx
-│   ├── panels/
-│   │   ├── ProfileForm.tsx     # User profile input
-│   │   ├── CountryPanel.tsx    # Route detail drawer
-│   │   └── ComparePanel.tsx    # Side-by-side country comparison
-│   └── ui/                     # Shared UI primitives (Button, Badge, etc.)
-│
-├── convex/
-│   ├── schema.ts               # Convex DB schema
-│   ├── routes.ts               # Convex queries/mutations for route data
-│   ├── savedProfiles.ts        # User profile persistence
-│   └── auth.config.ts          # Convex Auth configuration
-│
-├── lib/
-│   ├── agent/
-│   │   ├── retriever.ts        # Web search via Exa/Serper
-│   │   ├── extractor.ts        # LLM extraction → route schema
-│   │   └── scorer.ts           # Profile × route → fit score
-│   ├── scoring.ts              # Country-level score aggregation
-│   └── types.ts                # Shared TypeScript types (Route, Profile, etc.)
-│
-├── data/
-│   └── seed-routes.json        # Curated seed routes for v1 destinations
-│
-├── public/
-│   └── geo/
-│       └── countries.geojson   # Country polygons for globe layer
-│
-├── .env.example
-└── README.md
-```
-
----
-
 ## How the Agent Works
 
 1. **Profile submitted** → `POST /api/routes/search` receives the user profile and target country (or "all").
