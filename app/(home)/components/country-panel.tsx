@@ -29,7 +29,7 @@ export function CountryPanel({
     : pathways;
 
   return (
-    <div className="absolute top-4 right-4 z-20 hidden w-[380px] max-w-[calc(100%-2rem)] space-y-3 lg:block">
+    <div className="absolute top-4 right-4 z-20 hidden w-95 max-w-[calc(100%-2rem)] space-y-3 lg:block">
       <Card className="bg-background/85 backdrop-blur-md">
         <CardHeader>
           <div className="flex items-start justify-between gap-3">
@@ -66,6 +66,7 @@ export function CountryPanel({
           <Button
             variant="outline"
             size="sm"
+            nativeButton={false}
             render={
               <a
                 href={country.officialImmigrationUrl}
