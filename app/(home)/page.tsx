@@ -1,4 +1,4 @@
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar } from "@/app/(home)/components/app-sidebar";
 import { Map, MapControls } from "@/components/ui/map";
 
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
