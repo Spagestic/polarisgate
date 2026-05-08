@@ -166,6 +166,4 @@ Please open an issue first for significant changes.
 
 ---
 
-<div align="center">
-Built with curiosity by someone who has been through the immigration research rabbit hole themselves.
-</div>
+> Built with curiosity by someone who has been through the immigration research rabbit hole themselves.
