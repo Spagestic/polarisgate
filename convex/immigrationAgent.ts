@@ -146,7 +146,7 @@ async function extractCandidatesWithModel({
       "content-type": "application/json",
     },
     body: JSON.stringify({
-      model: "mistral-small-latest",
+      model: "mistral-medium-3-5",
       temperature: 0.2,
       messages: [
         {
