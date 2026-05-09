@@ -1,19 +1,23 @@
 # Polaris Gate
 
-**Explore immigration pathways to any country — visualized on an interactive 3D globe.**
+**An agentic immigration research interface visualized on an interactive 3D globe.**
 
-Enter your profile, select a destination, and our AI agent surfaces the realistic PR and visa routes available to you — timelines, requirements, and official resources included.
+Describe your background and migration goals in plain English. Polaris Gate researches possible destinations, drops recommended countries onto a globe, and turns each result into an interactive pathway, document, source, and comparison UI.
 
 ---
 
 ## Overview
 
-Polaris Gate is a side project that helps people understand their immigration options. You provide a simple profile — your citizenship, age, education, occupation, savings, and goals — and the app:
+Polaris Gate helps people answer a hard early migration question: “Where should I even look, and what route might work for me?”
 
-- **Colors the globe** by how well each country matches your profile.
-- **Shows relevant pathways** (skilled worker, study-to-PR, investor, family) when you click any country.
-- **Uses an AI agent** to retrieve, extract, and summarize routes from official government sources.
-- **Links you to official pages** so you can verify everything and take the next step.
+The current MVP is a generative UI prototype:
+
+- The user enters a free-form profile such as age, residence country, savings, job/education background, and goals.
+- The research agent builds a shortlist of suitable countries.
+- Recommended destinations appear as markers on the globe.
+- Marker popups show a compact fit score, primary pathway, PR timeline, and a details button.
+- Sidebar tabs render the agent trace, country details, previous searches, and quantitative comparisons.
+- Completed searches are saved to Convex history and can be restored later.
 
 > ⚠️ **Disclaimer**: Polaris Gate is a research and exploration tool, not legal advice. Always verify information with official government sources and consult a licensed immigration advisor before making decisions.
 
@@ -21,23 +25,27 @@ Polaris Gate is a side project that helps people understand their immigration op
 
 ## Features
 
-- 🌍 **3D Interactive Globe** — Built with `mapcn` (MapLibre-based) globe components; countries colored by fit score.
-- 🤖 **AI Agent Research** — Retrieval-augmented agent fetches and structures official immigration routes.
-- 🎯 **Profile-Based Scoring** — Factors in citizenship, occupation, savings, language, time horizon, and goals.
-- 📋 **Pathway Detail Panels** — Per-country route cards: timeline, prerequisites, language requirements, official links.
-- 🔍 **Country Comparison** — Pin up to 3 countries and compare side by side.
-- 🔒 **Auth with Convex** — Optional user accounts to save your profile and pinned countries.
-- 🌗 **Light / Dark Mode** — System-preference aware with a manual toggle.
+- 🌍 **Interactive Globe** — MapLibre-based globe with AI-recommended destination markers.
+- 💬 **Prompt-First Search** — Users describe their migration profile in natural language.
+- 🤖 **Agent Trace Panel** — The Home tab shows user messages, agent steps, and tool/research events.
+- 📍 **Destination Markers** — Marker popups summarize fit score, PR timeline, primary route, and cautions.
+- 📋 **Explore Countries Tab** — Full pathway details, documents, eligibility notes, cautions, sources, and economic snapshot.
+- 🕘 **History Tab** — Convex-backed saved searches with prompt, messages, recommendations, and summaries.
+- 📊 **Compare Countries Tab** — Side-by-side quantitative cards using latest available World Bank indicators.
+- 🔎 **Live Research + Fallbacks** — Firecrawl/Mistral are used when keys are configured; seeded recommendations keep the demo usable without them.
+- 🔒 **Convex Auth + Data** — Convex Auth powers users, and Convex stores search history and related app data.
 
 ---
 
 ## Tech Stack
 
 - **Framework**: [Next.js](https://nextjs.org) (App Router, TypeScript)
-- **3D Globe**: [mapcn](https://github.com/AnmolSaini16/mapcn) (built on [MapLibre GL](https://maplibre.org/))
+- **Map**: [MapLibre GL](https://maplibre.org/) through local map UI components
 - **Database & Real-time**: [Convex](https://convex.dev)
 - **Auth**: [Convex Auth](https://labs.convex.dev/auth)
-- **AI / Agents**: Mistral AI + web retrieval (Firecrawl / Exa)
+- **AI / Research**: Mistral AI + Firecrawl
+- **Economic Indicators**: World Bank API
+- **UI**: React, Tailwind CSS, shadcn-style components, Lucide icons
 
 ---
 
@@ -46,10 +54,10 @@ Polaris Gate is a side project that helps people understand their immigration op
 ### Prerequisites
 
 - **Node.js** `>=20.x`
-- **npm** `>=10.x`
+- **Bun** or **npm**
 - A **Convex** account — [sign up free](https://dashboard.convex.dev/)
 - An **Mistral AI** API key — [console.mistral.ai](https://console.mistral.ai/)
-- _(Optional)_ An **Firecrawl** or **Exa** API key for the agent's web-retrieval step
+- _(Optional but recommended)_ A **Firecrawl** API key — [firecrawl.dev](https://firecrawl.dev)
 
 ---
 
@@ -58,8 +66,8 @@ Polaris Gate is a side project that helps people understand their immigration op
 If you just cloned this codebase, run:
 
 ```bash
-npm install
-npm run dev
+bun install
+bun dev
 ```
 
 Then open [http://localhost:3000](http://localhost:3000).
@@ -95,68 +103,142 @@ NEXT_PUBLIC_CONVEX_URL=https://your-project.convex.cloud
 # Mistral AI
 MISTRAL_API_KEY=...      # https://console.mistral.ai/
 
-# Web retrieval (pick one or both)
+# Web retrieval
 FIRECRAWL_API_KEY=...   # https://firecrawl.dev
-EXA_API_KEY=...          # https://exa.ai
 ```
 
-#### 3. Push the Convex schema
+#### 3. Run the app
 
 ```bash
-npx convex dev
+bun dev
 ```
 
-This starts the Convex dev server and pushes your schema and functions to your deployment. Keep it running alongside `npm run dev` in a separate terminal.
+The `dev` script runs Convex and Next together:
+
+```json
+"dev": "convex dev --start 'next dev'"
+```
+
+Convex codegen is useful after schema/function changes:
+
+```bash
+npx convex codegen
+```
 
 ---
 
 ## How the Agent Works
 
-1. **Profile submitted** → `POST /api/routes/search` receives the user profile and target country (or "all").
-2. **Retriever** queries official immigration sources using targeted queries like `site:.gov canada skilled worker permanent residence requirements 2026`.
-3. **Extractor** passes retrieved pages to the LLM, which outputs a structured `Route` object: `{ route_type, pr_time_estimate_years, language_requirement, min_savings, family_friendly, official_links[] }`.
-4. **Scorer** applies the profile-vs-route scoring function and returns per-country scores.
-5. **Globe updates** its `fill-color` expression from the returned score map.
+1. **Prompt submitted** → `app/(home)/components/immigration-agent-shell.tsx` sends the user prompt to `POST /api/chat`.
+2. **Profile parsed** → the route extracts goals, age, savings, and other profile signals.
+3. **Country shortlist built** → candidate destinations are ranked against the user's goals.
+4. **Research sources fetched** → Firecrawl searches/scrapes official-looking immigration sources when `FIRECRAWL_API_KEY` is available.
+5. **Pathway draft extracted** → Mistral turns source snippets into a structured pathway summary when `MISTRAL_API_KEY` is available.
+6. **Economic metrics added** → World Bank indicators are fetched for GDP, GDP per capita, GDP growth, inflation, unemployment, population, and income level.
+7. **UI events stream back** → the frontend progressively adds agent trace messages, map markers, and sidebar details.
+8. **History saved** → completed searches are stored in Convex through `convex/searchHistory.ts`.
 
-> Routes are refreshed **offline nightly** and cached in Convex — individual user requests are fast lookups, not live scrapes.
+If live API keys are missing or a request fails, the app falls back to seeded country/pathway data so the core interaction remains demoable.
 
 ---
 
-## Supported Destinations (v1)
+## Current Seeded Destinations
 
-| Country           | Routes Covered                                               |
-| ----------------- | ------------------------------------------------------------ |
-| 🇨🇦 Canada         | Express Entry, PNP, Study → PGWP → PR                        |
-| 🇦🇺 Australia      | Skilled Independent (189), State Nomination (190)            |
-| 🇳🇿 New Zealand    | Skilled Migrant, Accredited Employer Work Visa               |
-| 🇮🇪 Ireland        | Critical Skills Employment Permit → Stamp 4                  |
-| 🇬🇧 United Kingdom | Skilled Worker visa → ILR                                    |
-| 🇩🇪 Germany        | Skilled Immigration Act (Fachkräfte), Opportunity Card       |
-| 🇺🇸 United States  | H-1B → EB-2/EB-3, EB-5 (high-level overview)                 |
-| 🇲🇹 Malta          | Key Employee Initiative, Malta Permanent Residence Programme |
+| Country | Example route |
+| --- | --- |
+| Canada | Express Entry or study-to-PGWP-to-PR |
+| Australia | Skilled Independent, state nomination, or study-to-skilled route |
+| Germany | EU Blue Card, skilled worker visa, or study-to-work route |
+| New Zealand | Skilled Migrant Category or accredited employer route |
+| Portugal | Study, work, or residence route followed by long-term residence |
+| United Kingdom | Skilled Worker visa to settlement or graduate-to-skilled route |
+| Ireland | Critical Skills Employment Permit to long-term residence |
 
-More destinations are planned for v2.
+The agent can still research live sources for these countries; the seeded data exists to make the MVP reliable.
+
+---
+
+## Example Prompts
+
+```text
+I am 22 from India, $25k USD in savings, want work at a software engineering job and obtain PR, prefer English-speaking countries.
+```
+
+```text
+I am 24 from Indonesia, $18k USD in savings, want to study a master's degree abroad and convert to PR after graduation.
+```
+
+```text
+I am 35 from the Philippines, moving with my spouse and one child, $55k USD in savings, want family-friendly countries with healthcare and PR options.
+```
+
+```text
+I am 40 from South Africa, $90k USD in savings, run a small business, want investment or entrepreneur visa routes that can lead to residency.
+```
+
+```text
+I am 26 from Nigeria, have a nursing degree and $20k USD in savings, want countries with healthcare worker shortages and clear PR pathways.
+```
+
+```text
+I am 29 from Malaysia, $40k USD in savings, have a bachelor's in finance, want a work route to PR with strong salary growth and stable economy.
+```
+
+```text
+I am 33 from Pakistan, work in cybersecurity, $35k USD in savings, want fast PR options and eventually citizenship in an English-speaking country.
+```
+
+```text
+I am 27 from Vietnam, $12k USD in savings, want affordable study-to-work migration options and lower inflation.
+```
+
+```text
+I am 38 from Egypt, married with two children, $70k USD in savings, want safe family resettlement with good public schools and healthcare.
+```
+
+```text
+I am 30 from Mexico, work remotely in software, $45k USD in savings, want countries with realistic digital-nomad-to-residency pathways.
+```
+
+```text
+I am 34 from Turkey, senior mechanical engineer, $50k USD in savings, want skilled migration countries with strong manufacturing demand and low unemployment.
+```
+
+```text
+I am 25 from Sri Lanka, $10k USD in savings, want the cheapest realistic path to study, work, and eventually PR.
+```
+
+```text
+I am 41 from Kenya, $120k USD in savings, run a small company, want entrepreneur or investment routes that can lead to permanent residence.
+```
+
+```text
+I am 24 from Bangladesh, recent computer science graduate with $15k USD in savings, want entry-level tech opportunities and a clear PR pathway.
+```
+
+```text
+I am 32 from Brazil, product designer with $30k USD in savings, want countries with good creative-tech job markets and long-term citizenship options.
+```
 
 ---
 
 ## Roadmap
 
-- [ ] **v1** — Globe + profile form + 8 destination routes + agent refresh pipeline
-- [ ] **v1.5** — Country comparison panel, shareable profile links, user accounts
-- [ ] **v2** — Timeline view (12-month step-by-step plan), cost-of-living estimates, occupation-specific route filtering
-- [ ] **v3** — Community-submitted route updates, lawyer/advisor directory integration
+- [x] **Hackathon MVP** — Prompt box, globe markers, agent trace, details sidebar, history, and comparison metrics.
+- [ ] **Richer scoring** — More explicit scoring breakdown for affordability, eligibility, timeline, labor demand, and passport strength.
+- [ ] **Better data coverage** — Cost of living, salary ranges, visa fees, processing times, English requirements, healthcare/safety indexes.
+- [ ] **Generated action plans** — 6- to 24-month migration timelines with document milestones.
+- [ ] **Sharing** — Shareable search results and exportable country comparison summaries.
 
 ---
 
-## Contributing
+## Notes For Development
 
-Contributions, bug reports, and route data corrections are welcome.
-
-1. Fork the repo and create your branch: `git checkout -b feat/your-feature`
-2. Commit your changes: `git commit -m 'feat: add xyz'`
-3. Push and open a Pull Request
-
-Please open an issue first for significant changes.
+- Convex guidelines live in `convex/_generated/ai/guidelines.md`.
+- Search history is stored in `searchHistories` in `convex/schema.ts`.
+- The primary agent route is `app/api/chat/route.ts`.
+- Sidebar tabs live under `app/(home)/components/sidebar/`.
+- Economic data currently comes from the World Bank API and is nullable by design.
 
 ---
 
