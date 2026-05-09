@@ -19,6 +19,7 @@ import type * as firecrawl_map from "../firecrawl/map.js";
 import type * as firecrawl_scrape from "../firecrawl/scrape.js";
 import type * as firecrawl_search from "../firecrawl/search.js";
 import type * as http from "../http.js";
+import type * as immigrationAgent from "../immigrationAgent.js";
 import type * as pathways from "../pathways.js";
 import type * as pinnedCountries from "../pinnedCountries.js";
 import type * as profiles from "../profiles.js";
@@ -46,6 +47,7 @@ declare const fullApi: ApiFromModules<{
   "firecrawl/scrape": typeof firecrawl_scrape;
   "firecrawl/search": typeof firecrawl_search;
   http: typeof http;
+  immigrationAgent: typeof immigrationAgent;
   pathways: typeof pathways;
   pinnedCountries: typeof pinnedCountries;
   profiles: typeof profiles;
