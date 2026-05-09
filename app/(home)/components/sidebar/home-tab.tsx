@@ -2,6 +2,12 @@
 
 import { Loader2Icon } from "lucide-react";
 
+import {
+  Tool,
+  ToolContent,
+  ToolHeader,
+  type ToolPart,
+} from "@/components/tool";
 import type {
   ApplicantProfile,
   ChatMessage,
@@ -33,28 +39,164 @@ function messageLabel(role: ChatMessage["role"]) {
   return "Agent";
 }
 
-function AgentTracePanel({ messages }: { messages: ChatMessage[] }) {
+function toolTitle(content: string) {
+  if (content.startsWith("Recommended ")) return "Recommendation";
+  if (content.includes("enriching immigration and economic data")) {
+    return "Enriching data";
+  }
+  if (content.includes("searching the web")) return "Web research";
+  return "Tool call";
+}
+
+function countryFromTrace(content: string) {
   return (
-    <section className="">
+    content.match(/selected ([^;]+);/)?.[1] ??
+    content.match(/^Recommended ([^:]+):/)?.[1] ??
+    null
+  );
+}
+
+function latestUserPrompt(messages: ChatMessage[], index: number) {
+  return messages
+    .slice(0, index)
+    .reverse()
+    .find((message) => message.role === "user")?.content;
+}
+
+function toolQuery(
+  message: ChatMessage,
+  messages: ChatMessage[],
+  index: number,
+) {
+  const country = countryFromTrace(message.content);
+  const prompt = latestUserPrompt(messages, index);
+
+  if (message.content.includes("searching the web")) {
+    return prompt
+      ? `Find destination countries for: ${prompt}`
+      : "Find destination countries that match the applicant profile.";
+  }
+
+  if (message.content.includes("enriching immigration and economic data")) {
+    return country
+      ? `Research official immigration and economic data for ${country}.`
+      : "Research official immigration and economic data for the selected destination.";
+  }
+
+  if (message.content.startsWith("Recommended ")) {
+    return country
+      ? `Build a ranked immigration recommendation for ${country}.`
+      : "Build a ranked immigration recommendation from the research result.";
+  }
+
+  return prompt
+    ? `Run immigration research for: ${prompt}`
+    : "Run immigration research.";
+}
+
+function ToolTraceMessage({
+  index,
+  isRunning,
+  message,
+  messages,
+}: {
+  index: number;
+  isRunning: boolean;
+  message: ChatMessage;
+  messages: ChatMessage[];
+}) {
+  const state = (
+    isRunning ? "input-available" : "output-available"
+  ) satisfies ToolPart["state"];
+
+  return (
+    <Tool
+      className="mb-0 min-w-0 max-w-full overflow-hidden bg-muted/60 my-1"
+      defaultOpen={isRunning}
+    >
+      <ToolHeader
+        className="min-w-0"
+        state={state}
+        title={toolTitle(message.content)}
+        toolName="immigration-research"
+        type="dynamic-tool"
+      />
+      <ToolContent className="min-w-0 p-3">
+        <TraceSection label="Query">
+          {toolQuery(message, messages, index)}
+        </TraceSection>
+        <TraceSection label="Result">{message.content}</TraceSection>
+      </ToolContent>
+    </Tool>
+  );
+}
+
+function TraceSection({
+  children,
+  label,
+}: {
+  children: string;
+  label: string;
+}) {
+  return (
+    <div className="min-w-0 space-y-2">
+      <h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+        {label}
+      </h4>
+      <p className="wrap-break-word rounded-md bg-muted/50 p-3 text-sm leading-5">
+        {children}
+      </p>
+    </div>
+  );
+}
+
+function AgentTracePanel({
+  messages,
+  researchStatus,
+}: {
+  messages: ChatMessage[];
+  researchStatus: ResearchStatus;
+}) {
+  return (
+    <section className="min-w-0">
       {messages.length === 0 ? (
         <p className="text-muted-foreground text-sm leading-6">
           Agent activity will appear here once you start a migration search.
         </p>
       ) : (
-        <div className="space-y-2">
-          {messages.map((message, index) => (
-            <div
-              key={`${message.role}-${index}-${message.content.slice(0, 16)}`}
-              className="bg-muted/60 rounded-lg p-2"
-            >
-              <div className="mb-1 flex items-center justify-between gap-2">
-                <span className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
-                  {messageLabel(message.role)}
-                </span>
+        <div className="min-w-0 space-y-2">
+          {messages.map((message, index) => {
+            const key = `${message.role}-${index}-${message.content.slice(0, 16)}`;
+            const isRunningTool =
+              researchStatus === "researching" &&
+              message.role === "tool" &&
+              index === messages.length - 1;
+
+            if (message.role === "tool") {
+              return (
+                <ToolTraceMessage
+                  index={index}
+                  isRunning={isRunningTool}
+                  key={`${key}-${isRunningTool ? "running" : "done"}`}
+                  message={message}
+                  messages={messages}
+                />
+              );
+            }
+
+            return (
+              <div key={key} className="min-w-0 rounded-lg bg-muted/60 p-2">
+                <div className="mb-1 flex items-center justify-between gap-2">
+                  <span className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
+                    {messageLabel(message.role)}
+                  </span>
+                </div>
+                <p className="wrap-break-word text-sm leading-5">
+                  {message.content}
+                </p>
               </div>
-              <p className="text-sm leading-5">{message.content}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </section>
@@ -65,12 +207,11 @@ export function HomeTab({
   researchStatus,
   progressMessage,
   profile,
-  summary,
   error,
   messages,
 }: HomeTabProps) {
   return (
-    <div className="space-y-4 p-4">
+    <div className="min-w-0 space-y-4 p-4">
       {researchStatus === "researching" ? (
         <div className="bg-muted/40 rounded-xl border p-3">
           <div className="flex items-center gap-2 text-sm font-medium">
@@ -115,7 +256,7 @@ export function HomeTab({
         </div>
       ) : null}
 
-      <AgentTracePanel messages={messages} />
+      <AgentTracePanel messages={messages} researchStatus={researchStatus} />
     </div>
   );
 }
