@@ -24,6 +24,9 @@ export function useCountryMapSelection(
   const [flyToRequest, setFlyToRequest] =
     React.useState<MapFlyToRequest | null>(null);
   const [markers, setMarkers] = React.useState<CountryMarker[]>([]);
+  const [openMarkerId, setOpenMarkerId] = React.useState<string | null>(
+    null,
+  );
 
   const handleSelectCountry = React.useCallback(
     (country: SearchResult) => {
@@ -34,6 +37,8 @@ export function useCountryMapSelection(
       const markerId =
         country.iso3 ?? country.iso2 ?? country.name ?? `${lon}:${lat}`;
       const selectedAt = Date.now();
+      // Close any open popup immediately; reopen after fly animation finishes.
+      setOpenMarkerId(null);
 
       setMarkers((prev) => {
         const next: CountryMarker = {
@@ -51,15 +56,23 @@ export function useCountryMapSelection(
         longitude: lon,
         latitude: lat,
         zoom: flyToZoomForAreaKm2(country.areaKm2),
+        markerId,
         key: (prev?.key ?? 0) + 1,
       }));
     },
     [maxMarkers],
   );
 
+  const handleFlyComplete = React.useCallback((request: MapFlyToRequest) => {
+    if (!request.markerId) return;
+    setOpenMarkerId(request.markerId);
+  }, []);
+
   return {
     markers,
+    openMarkerId,
     flyToRequest,
     handleSelectCountry,
+    handleFlyComplete,
   };
 }

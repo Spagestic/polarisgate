@@ -7,12 +7,14 @@ export type MapFlyToRequest = {
   longitude: number;
   latitude: number;
   zoom: number;
+  markerId?: string;
   /** Increment to animate again to the same place */
   key: number;
 };
 
 export type UseMapFlyToOptions = {
   durationMs?: number;
+  onComplete?: (request: MapFlyToRequest) => void;
 };
 
 /** Animated `flyTo` when `request` changes. Call only inside `<Map>` (uses `useMap`). */
@@ -22,9 +24,14 @@ export function useMapFlyTo(
 ): void {
   const { map, isLoaded } = useMap();
   const durationMs = options?.durationMs ?? 1500;
+  const onComplete = options?.onComplete;
 
   React.useEffect(() => {
     if (!map || !isLoaded || !request) return;
+    const handleMoveEnd = () => {
+      onComplete?.(request);
+    };
+    map.once("moveend", handleMoveEnd);
 
     map.flyTo({
       center: [request.longitude, request.latitude],
@@ -32,5 +39,8 @@ export function useMapFlyTo(
       duration: durationMs,
       essential: true,
     });
-  }, [map, isLoaded, request, durationMs]);
+    return () => {
+      map.off("moveend", handleMoveEnd);
+    };
+  }, [map, isLoaded, request, durationMs, onComplete]);
 }

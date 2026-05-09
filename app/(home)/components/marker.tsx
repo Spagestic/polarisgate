@@ -3,7 +3,6 @@
 import {
   MapMarker,
   MarkerContent,
-  MarkerLabel,
   MarkerPopup,
 } from "@/components/ui/map";
 import type { SearchResult } from "@/components/search-bar";
@@ -15,6 +14,7 @@ type CountryRichMarkerProps = {
   longitude: number;
   latitude: number;
   selectedAt: number;
+  forceOpen: boolean;
   popupResetKey: number;
 };
 
@@ -24,6 +24,7 @@ export function Marker({
   longitude,
   latitude,
   selectedAt,
+  forceOpen,
   popupResetKey,
 }: CountryRichMarkerProps) {
   const countryLabel = country.name ?? "Country";
@@ -32,10 +33,13 @@ export function Marker({
     <MapMarker key={id} longitude={longitude} latitude={latitude}>
       <MarkerContent>
         <div className="size-5 cursor-pointer rounded-full border-2 border-white bg-rose-500 shadow-lg transition-transform hover:scale-110" />
-        <MarkerLabel position="bottom">{countryLabel}</MarkerLabel>
       </MarkerContent>
 
-      <MarkerPopup key={`${id}-${popupResetKey}`} className="w-72 p-0">
+      <MarkerPopup
+        key={`${id}-${popupResetKey}`}
+        className="w-72 p-0"
+        forceOpen={forceOpen}
+      >
         <div className="from-muted to-muted/60 flex h-28 items-center justify-center overflow-hidden rounded-t-md bg-linear-to-br">
           {country.flag ? (
             // eslint-disable-next-line @next/next/no-img-element

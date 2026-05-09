@@ -7,13 +7,19 @@ import { useMapFlyTo, type MapFlyToRequest } from "@/hooks/use-map-fly-to";
 import { useCountryMapSelection } from "@/hooks/use-country-map-selection";
 import { Marker } from "@/app/(home)/components/marker";
 
-function MapFlyToBinder({ request }: { request: MapFlyToRequest | null }) {
-  useMapFlyTo(request);
+function MapFlyToBinder({
+  request,
+  onComplete,
+}: {
+  request: MapFlyToRequest | null;
+  onComplete: (request: MapFlyToRequest) => void;
+}) {
+  useMapFlyTo(request, { onComplete });
   return null;
 }
 
 export function MapPanel() {
-  const { markers, flyToRequest, handleSelectCountry } =
+  const { markers, openMarkerId, flyToRequest, handleSelectCountry, handleFlyComplete } =
     useCountryMapSelection();
   const popupResetKey = flyToRequest?.key ?? 0;
 
@@ -24,7 +30,7 @@ export function MapPanel() {
       </div>
 
       <Map center={[18, 18]} zoom={1.5} projection={{ type: "globe" }}>
-        <MapFlyToBinder request={flyToRequest} />
+        <MapFlyToBinder request={flyToRequest} onComplete={handleFlyComplete} />
         {markers.map((marker) => (
           <Marker
             key={marker.id}
@@ -33,6 +39,7 @@ export function MapPanel() {
             longitude={marker.longitude}
             latitude={marker.latitude}
             selectedAt={marker.selectedAt}
+            forceOpen={marker.id === openMarkerId}
             popupResetKey={popupResetKey}
           />
         ))}

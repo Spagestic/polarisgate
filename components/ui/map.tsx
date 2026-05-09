@@ -543,12 +543,15 @@ type MarkerPopupProps = {
   className?: string;
   /** Show a close button in the popup (default: false) */
   closeButton?: boolean;
+  /** Programmatically open the popup when true */
+  forceOpen?: boolean;
 } & Omit<PopupOptions, "className" | "closeButton">;
 
 function MarkerPopup({
   children,
   className,
   closeButton = false,
+  forceOpen = false,
   ...popupOptions
 }: MarkerPopupProps) {
   const { marker, map } = useMarkerContext();
@@ -583,6 +586,12 @@ function MarkerPopup({
     popup.setOffset(popupOptions.offset ?? 16);
     popup.setMaxWidth(popupOptions.maxWidth ?? "none");
   }, [popup, popupOptions.offset, popupOptions.maxWidth]);
+
+  useEffect(() => {
+    if (!forceOpen) return;
+    if (popup.isOpen()) return;
+    marker.togglePopup();
+  }, [forceOpen, marker, popup]);
 
   const handleClose = () => popup.remove();
 
