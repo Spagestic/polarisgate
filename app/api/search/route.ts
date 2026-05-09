@@ -32,9 +32,25 @@ type SearchResult = {
 
 export const revalidate = 60 * 60 * 24;
 
+function scoreCountry(country: RawCountry, q: string) {
+  const name = country.name?.common?.toLowerCase() ?? "";
+  const official = country.name?.official?.toLowerCase() ?? "";
+  const capital = country.capital?.[0]?.toLowerCase() ?? "";
+  const iso2 = country.cca2?.toLowerCase() ?? "";
+  const iso3 = country.cca3?.toLowerCase() ?? "";
+
+  const haystacks = [name, official, capital, iso2, iso3];
+
+  if (haystacks.some((value) => value === q)) return 100;
+  if (haystacks.some((value) => value.startsWith(q))) return 60;
+  if (haystacks.some((value) => value.includes(q))) return 20;
+  return 0;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const q = request.nextUrl.searchParams.get("q")?.trim().toLowerCase();
+    const limit = Number(request.nextUrl.searchParams.get("limit") ?? "12");
 
     if (!q) {
       return NextResponse.json({ results: [] });
@@ -54,23 +70,14 @@ export async function GET(request: NextRequest) {
     const countries: RawCountry[] = await res.json();
 
     const results: SearchResult[] = countries
-      .filter((country) => {
-        const name = country.name?.common?.toLowerCase() ?? "";
-        const official = country.name?.official?.toLowerCase() ?? "";
-        const capital = country.capital?.[0]?.toLowerCase() ?? "";
-        const iso2 = country.cca2?.toLowerCase() ?? "";
-        const iso3 = country.cca3?.toLowerCase() ?? "";
-
-        return (
-          name.includes(q) ||
-          official.includes(q) ||
-          capital.includes(q) ||
-          iso2.includes(q) ||
-          iso3.includes(q)
-        );
-      })
-      .slice(0, 12)
       .map((country) => ({
+        country,
+        score: scoreCountry(country, q),
+      }))
+      .filter(({ score }) => score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, Math.min(Math.max(limit, 1), 20))
+      .map(({ country }) => ({
         name: country.name?.common ?? null,
         officialName: country.name?.official ?? null,
         iso2: country.cca2 ?? null,
