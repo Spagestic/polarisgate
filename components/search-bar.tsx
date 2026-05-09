@@ -28,6 +28,10 @@ export type SearchResult = {
   region: string | null;
   subregion: string | null;
   flag: string | null;
+  /** WGS84 latitude; used to fly the map when present */
+  latitude?: number | null;
+  /** WGS84 longitude */
+  longitude?: number | null;
 };
 
 type SearchbarProps = {
@@ -50,6 +54,8 @@ const DEFAULT_INITIAL_COUNTRIES: SearchResult[] = [
     region: "Americas",
     subregion: "North America",
     flag: "https://flagcdn.com/ca.svg",
+    latitude: 56.1304,
+    longitude: -106.3468,
   },
   {
     name: "Australia",
@@ -60,6 +66,8 @@ const DEFAULT_INITIAL_COUNTRIES: SearchResult[] = [
     region: "Oceania",
     subregion: "Australia and New Zealand",
     flag: "https://flagcdn.com/au.svg",
+    latitude: -25.2744,
+    longitude: 133.7751,
   },
   {
     name: "United Kingdom",
@@ -70,6 +78,8 @@ const DEFAULT_INITIAL_COUNTRIES: SearchResult[] = [
     region: "Europe",
     subregion: "Northern Europe",
     flag: "https://flagcdn.com/gb.svg",
+    latitude: 55.3781,
+    longitude: -3.436,
   },
   {
     name: "Germany",
@@ -80,6 +90,8 @@ const DEFAULT_INITIAL_COUNTRIES: SearchResult[] = [
     region: "Europe",
     subregion: "Western Europe",
     flag: "https://flagcdn.com/de.svg",
+    latitude: 51.1657,
+    longitude: 10.4515,
   },
   {
     name: "Singapore",
@@ -90,6 +102,8 @@ const DEFAULT_INITIAL_COUNTRIES: SearchResult[] = [
     region: "Asia",
     subregion: "South-Eastern Asia",
     flag: "https://flagcdn.com/sg.svg",
+    latitude: 1.3521,
+    longitude: 103.8198,
   },
   {
     name: "Japan",
@@ -100,6 +114,8 @@ const DEFAULT_INITIAL_COUNTRIES: SearchResult[] = [
     region: "Asia",
     subregion: "Eastern Asia",
     flag: "https://flagcdn.com/jp.svg",
+    latitude: 36.2048,
+    longitude: 138.2529,
   },
 ];
 

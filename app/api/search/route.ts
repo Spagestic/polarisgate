@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const REST_COUNTRIES_URL =
-  "https://restcountries.com/v3.1/all?fields=name,cca2,cca3,region,subregion,capital,flags";
+  "https://restcountries.com/v3.1/all?fields=name,cca2,cca3,region,subregion,capital,flags,latlng";
 
 type RawCountry = {
   name?: {
@@ -17,6 +17,8 @@ type RawCountry = {
   flags?: {
     svg?: string;
   };
+  /** [latitude, longitude] from REST Countries */
+  latlng?: number[];
 };
 
 type SearchResult = {
@@ -28,6 +30,8 @@ type SearchResult = {
   region: string | null;
   subregion: string | null;
   flag: string | null;
+  latitude: number | null;
+  longitude: number | null;
 };
 
 export const revalidate = 60 * 60 * 24;
@@ -77,16 +81,25 @@ export async function GET(request: NextRequest) {
       .filter(({ score }) => score > 0)
       .sort((a, b) => b.score - a.score)
       .slice(0, Math.min(Math.max(limit, 1), 20))
-      .map(({ country }) => ({
-        name: country.name?.common ?? null,
-        officialName: country.name?.official ?? null,
-        iso2: country.cca2 ?? null,
-        iso3: country.cca3 ?? null,
-        capital: country.capital?.[0] ?? null,
-        region: country.region ?? null,
-        subregion: country.subregion ?? null,
-        flag: country.flags?.svg ?? null,
-      }));
+      .map(({ country }) => {
+        const latlng = country.latlng;
+        const lat = latlng?.[0];
+        const lng = latlng?.[1];
+        return {
+          name: country.name?.common ?? null,
+          officialName: country.name?.official ?? null,
+          iso2: country.cca2 ?? null,
+          iso3: country.cca3 ?? null,
+          capital: country.capital?.[0] ?? null,
+          region: country.region ?? null,
+          subregion: country.subregion ?? null,
+          flag: country.flags?.svg ?? null,
+          latitude:
+            typeof lat === "number" && Number.isFinite(lat) ? lat : null,
+          longitude:
+            typeof lng === "number" && Number.isFinite(lng) ? lng : null,
+        };
+      });
 
     return NextResponse.json({ results });
   } catch {
