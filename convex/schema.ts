@@ -204,6 +204,35 @@ export default defineSchema({
             publisher: v.string(),
           }),
         ),
+        metrics: v.optional(
+          v.object({
+            incomeLevel: v.union(v.string(), v.null()),
+            gdpUsd: v.object({
+              value: v.union(v.number(), v.null()),
+              year: v.union(v.string(), v.null()),
+            }),
+            gdpPerCapitaUsd: v.object({
+              value: v.union(v.number(), v.null()),
+              year: v.union(v.string(), v.null()),
+            }),
+            gdpGrowthPct: v.object({
+              value: v.union(v.number(), v.null()),
+              year: v.union(v.string(), v.null()),
+            }),
+            inflationPct: v.object({
+              value: v.union(v.number(), v.null()),
+              year: v.union(v.string(), v.null()),
+            }),
+            unemploymentPct: v.object({
+              value: v.union(v.number(), v.null()),
+              year: v.union(v.string(), v.null()),
+            }),
+            population: v.object({
+              value: v.union(v.number(), v.null()),
+              year: v.union(v.string(), v.null()),
+            }),
+          }),
+        ),
         confidence: v.union(
           v.literal("seeded"),
           v.literal("agent_draft"),

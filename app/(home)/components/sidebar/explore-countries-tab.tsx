@@ -12,6 +12,7 @@ import {
 
 import type {
   CountryRecommendation,
+  MetricValue,
   ResearchStatus,
 } from "@/lib/immigration/types";
 
@@ -33,8 +34,41 @@ function formatCurrency(value: number | null) {
   }).format(value);
 }
 
+function formatCurrencyMetric(metric?: MetricValue) {
+  if (typeof metric?.value !== "number") return "N/A";
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(metric.value);
+}
+
+function formatPercentMetric(metric?: MetricValue) {
+  if (typeof metric?.value !== "number") return "N/A";
+  return `${metric.value.toFixed(1)}%`;
+}
+
 function formatTimeline(months: [number, number]) {
   return `${months[0]}-${months[1]} months`;
+}
+
+function MetricCard({
+  label,
+  value,
+  year,
+}: {
+  label: string;
+  value: string;
+  year?: string | null;
+}) {
+  return (
+    <div className="rounded-xl border p-3">
+      <p className="text-muted-foreground text-xs">{label}</p>
+      <p className="mt-1 text-sm font-semibold">{value}</p>
+      {year ? <p className="text-muted-foreground mt-1 text-xs">{year}</p> : null}
+    </div>
+  );
 }
 
 function EmptyState() {
@@ -138,6 +172,56 @@ function RecommendationDetails({
           </p>
         </div>
       </div>
+
+      {recommendation.metrics ? (
+        <section>
+          <h3 className="text-sm font-semibold">Economic snapshot</h3>
+          <p className="text-muted-foreground mt-1 text-xs leading-5">
+            Latest available World Bank indicators.
+          </p>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            <MetricCard
+              label="GDP"
+              value={formatCurrencyMetric(recommendation.metrics.gdpUsd)}
+              year={recommendation.metrics.gdpUsd.year}
+            />
+            <MetricCard
+              label="GDP / capita"
+              value={formatCurrencyMetric(recommendation.metrics.gdpPerCapitaUsd)}
+              year={recommendation.metrics.gdpPerCapitaUsd.year}
+            />
+            <MetricCard
+              label="GDP growth"
+              value={formatPercentMetric(recommendation.metrics.gdpGrowthPct)}
+              year={recommendation.metrics.gdpGrowthPct.year}
+            />
+            <MetricCard
+              label="Inflation"
+              value={formatPercentMetric(recommendation.metrics.inflationPct)}
+              year={recommendation.metrics.inflationPct.year}
+            />
+            <MetricCard
+              label="Unemployment"
+              value={formatPercentMetric(recommendation.metrics.unemploymentPct)}
+              year={recommendation.metrics.unemploymentPct.year}
+            />
+            <MetricCard
+              label="Population"
+              value={
+                typeof recommendation.metrics.population.value === "number"
+                  ? recommendation.metrics.population.value.toLocaleString()
+                  : "N/A"
+              }
+              year={recommendation.metrics.population.year}
+            />
+          </div>
+          {recommendation.metrics.incomeLevel ? (
+            <p className="text-muted-foreground mt-2 text-xs">
+              Income level: {recommendation.metrics.incomeLevel}
+            </p>
+          ) : null}
+        </section>
+      ) : null}
 
       <section>
         <h3 className="text-sm font-semibold">Best pathway</h3>

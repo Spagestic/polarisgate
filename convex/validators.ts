@@ -171,6 +171,21 @@ export const recommendationSourceValidator = v.object({
   publisher: v.string(),
 });
 
+export const metricValueValidator = v.object({
+  value: v.union(v.number(), v.null()),
+  year: v.union(v.string(), v.null()),
+});
+
+export const countryEconomicMetricsValidator = v.object({
+  incomeLevel: v.union(v.string(), v.null()),
+  gdpUsd: metricValueValidator,
+  gdpPerCapitaUsd: metricValueValidator,
+  gdpGrowthPct: metricValueValidator,
+  inflationPct: metricValueValidator,
+  unemploymentPct: metricValueValidator,
+  population: metricValueValidator,
+});
+
 export const countryRecommendationValidator = v.object({
   id: v.string(),
   country: v.object({
@@ -197,6 +212,7 @@ export const countryRecommendationValidator = v.object({
   eligibilityNotes: v.array(v.string()),
   cautions: v.array(v.string()),
   sources: v.array(recommendationSourceValidator),
+  metrics: v.optional(countryEconomicMetricsValidator),
   confidence: v.union(
     v.literal("seeded"),
     v.literal("agent_draft"),

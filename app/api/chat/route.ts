@@ -2,8 +2,10 @@ import FirecrawlApp from "@mendable/firecrawl-js";
 import type {
   AgentUiEvent,
   ApplicantProfile,
+  CountryEconomicMetrics,
   CountryRecommendation,
   MigrationGoal,
+  MetricValue,
   RecommendationSource,
 } from "@/lib/immigration/types";
 
@@ -46,6 +48,26 @@ type RecommendationDraft = Partial<
     | "minSavingsUsd"
   >
 >;
+
+type WorldBankIndicatorRow = {
+  date?: string;
+  value?: number | string | null;
+};
+
+type WorldBankCountryRow = {
+  incomeLevel?: {
+    value?: string | null;
+  };
+};
+
+const ECONOMIC_INDICATORS = {
+  gdpUsd: "NY.GDP.MKTP.CD",
+  gdpPerCapitaUsd: "NY.GDP.PCAP.CD",
+  gdpGrowthPct: "NY.GDP.MKTP.KD.ZG",
+  inflationPct: "FP.CPI.TOTL.ZG",
+  unemploymentPct: "SL.UEM.TOTL.ZS",
+  population: "SP.POP.TOTL",
+} as const;
 
 const KNOWN_COUNTRIES: KnownCountry[] = [
   {
@@ -207,6 +229,107 @@ function publisherFromUrl(url: string) {
 
 function sanitizeJson(text: string) {
   return text.match(/```(?:json)?\s*([\s\S]*?)```/)?.[1] ?? text;
+}
+
+function emptyMetric(): MetricValue {
+  return { value: null, year: null };
+}
+
+async function fetchLatestWorldBankValue(
+  iso2: string,
+  indicator: string,
+): Promise<MetricValue> {
+  const response = await fetch(
+    `https://api.worldbank.org/v2/country/${iso2}/indicator/${indicator}?format=json&per_page=8`,
+    { next: { revalidate: 60 * 60 * 24 } },
+  );
+
+  if (!response.ok) return emptyMetric();
+
+  const payload = (await response.json()) as unknown;
+  const rows =
+    Array.isArray(payload) && Array.isArray(payload[1])
+      ? (payload[1] as WorldBankIndicatorRow[])
+      : [];
+  const latest = rows.find(
+    (row) =>
+      row.value !== null &&
+      row.value !== undefined &&
+      Number.isFinite(Number(row.value)),
+  );
+
+  if (!latest) return emptyMetric();
+
+  return {
+    value: Number(latest.value),
+    year: latest.date ?? null,
+  };
+}
+
+async function fetchIncomeLevel(iso2: string) {
+  const response = await fetch(
+    `https://api.worldbank.org/v2/country/${iso2}?format=json`,
+    { next: { revalidate: 60 * 60 * 24 } },
+  );
+
+  if (!response.ok) return null;
+
+  const payload = (await response.json()) as unknown;
+  const rows =
+    Array.isArray(payload) && Array.isArray(payload[1])
+      ? (payload[1] as WorldBankCountryRow[])
+      : [];
+
+  return rows[0]?.incomeLevel?.value ?? null;
+}
+
+async function fetchEconomicMetrics(
+  country: KnownCountry,
+): Promise<CountryEconomicMetrics> {
+  const [
+    incomeLevel,
+    gdpUsd,
+    gdpPerCapitaUsd,
+    gdpGrowthPct,
+    inflationPct,
+    unemploymentPct,
+    population,
+  ] = await Promise.all([
+    fetchIncomeLevel(country.iso2).catch(() => null),
+    fetchLatestWorldBankValue(country.iso2, ECONOMIC_INDICATORS.gdpUsd).catch(
+      emptyMetric,
+    ),
+    fetchLatestWorldBankValue(
+      country.iso2,
+      ECONOMIC_INDICATORS.gdpPerCapitaUsd,
+    ).catch(emptyMetric),
+    fetchLatestWorldBankValue(
+      country.iso2,
+      ECONOMIC_INDICATORS.gdpGrowthPct,
+    ).catch(emptyMetric),
+    fetchLatestWorldBankValue(
+      country.iso2,
+      ECONOMIC_INDICATORS.inflationPct,
+    ).catch(emptyMetric),
+    fetchLatestWorldBankValue(
+      country.iso2,
+      ECONOMIC_INDICATORS.unemploymentPct,
+    ).catch(emptyMetric),
+    fetchLatestWorldBankValue(
+      country.iso2,
+      ECONOMIC_INDICATORS.population,
+    ).catch(emptyMetric),
+  ]);
+
+  return {
+    incomeLevel,
+    gdpUsd,
+    gdpPerCapitaUsd,
+    gdpGrowthPct,
+    inflationPct,
+    unemploymentPct,
+    population,
+  };
 }
 
 function parseApplicantProfile(message: string): ApplicantProfile {
@@ -452,11 +575,13 @@ function buildRecommendation({
   profile,
   sources,
   draft,
+  metrics,
 }: {
   country: KnownCountry;
   profile: ApplicantProfile;
   sources: RetrievedSource[];
   draft: RecommendationDraft;
+  metrics: CountryEconomicMetrics;
 }): CountryRecommendation {
   const sourceLinks = sources.map(({ title, url, publisher }) => ({
     title,
@@ -519,6 +644,7 @@ function buildRecommendation({
           "This is not legal advice.",
         ],
     sources: sourceLinks,
+    metrics,
     confidence:
       process.env.FIRECRAWL_API_KEY && process.env.MISTRAL_API_KEY
         ? "agent_draft"
@@ -572,6 +698,15 @@ export async function POST(req: Request) {
             profile,
             sources,
           }).catch(() => ({}));
+          const metrics = await fetchEconomicMetrics(country).catch(() => ({
+            incomeLevel: null,
+            gdpUsd: emptyMetric(),
+            gdpPerCapitaUsd: emptyMetric(),
+            gdpGrowthPct: emptyMetric(),
+            inflationPct: emptyMetric(),
+            unemploymentPct: emptyMetric(),
+            population: emptyMetric(),
+          }));
 
           emit({
             type: "country_recommended",
@@ -580,6 +715,7 @@ export async function POST(req: Request) {
               profile,
               sources,
               draft,
+              metrics,
             }),
           });
         }

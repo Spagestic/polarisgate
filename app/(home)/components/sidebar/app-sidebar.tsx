@@ -20,7 +20,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import {
-  // ArrowRightLeftIcon,
+  ArrowRightLeftIcon,
   ClockIcon,
   EarthIcon,
   HelpCircle,
@@ -61,12 +61,12 @@ const data: { navMain: NavItem[] } = {
       icon: <ClockIcon />,
       isActive: false,
     },
-    // {
-    //   title: "Compare countries",
-    //   url: "#",
-    //   icon: <ArrowRightLeftIcon />,
-    //   isActive: false,
-    // },
+    {
+      title: "Compare countries",
+      url: "#",
+      icon: <ArrowRightLeftIcon />,
+      isActive: false,
+    },
   ],
 };
 
@@ -131,7 +131,7 @@ export function AppSidebar({
           />
         );
       case "Compare countries":
-        return <CompareCountriesTab />;
+        return <CompareCountriesTab recommendations={recommendations} />;
       case "Home":
       default:
         return (

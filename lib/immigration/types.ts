@@ -25,6 +25,21 @@ export type RecommendationSource = {
   publisher: string;
 };
 
+export type MetricValue = {
+  value: number | null;
+  year: string | null;
+};
+
+export type CountryEconomicMetrics = {
+  incomeLevel: string | null;
+  gdpUsd: MetricValue;
+  gdpPerCapitaUsd: MetricValue;
+  gdpGrowthPct: MetricValue;
+  inflationPct: MetricValue;
+  unemploymentPct: MetricValue;
+  population: MetricValue;
+};
+
 export type CountryRecommendation = {
   id: string;
   country: {
@@ -56,6 +71,7 @@ export type CountryRecommendation = {
   eligibilityNotes: string[];
   cautions: string[];
   sources: RecommendationSource[];
+  metrics?: CountryEconomicMetrics;
   confidence: "seeded" | "agent_draft" | "verified";
 };
 
