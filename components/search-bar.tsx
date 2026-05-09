@@ -32,6 +32,8 @@ export type SearchResult = {
   latitude?: number | null;
   /** WGS84 longitude */
   longitude?: number | null;
+  /** Land area in km² (with coordinates, used to choose map zoom) */
+  areaKm2?: number | null;
 };
 
 type SearchbarProps = {
@@ -56,6 +58,7 @@ const DEFAULT_INITIAL_COUNTRIES: SearchResult[] = [
     flag: "https://flagcdn.com/ca.svg",
     latitude: 56.1304,
     longitude: -106.3468,
+    areaKm2: 9984670,
   },
   {
     name: "Australia",
@@ -68,6 +71,7 @@ const DEFAULT_INITIAL_COUNTRIES: SearchResult[] = [
     flag: "https://flagcdn.com/au.svg",
     latitude: -25.2744,
     longitude: 133.7751,
+    areaKm2: 7692024,
   },
   {
     name: "United Kingdom",
@@ -80,6 +84,7 @@ const DEFAULT_INITIAL_COUNTRIES: SearchResult[] = [
     flag: "https://flagcdn.com/gb.svg",
     latitude: 55.3781,
     longitude: -3.436,
+    areaKm2: 242900,
   },
   {
     name: "Germany",
@@ -92,6 +97,7 @@ const DEFAULT_INITIAL_COUNTRIES: SearchResult[] = [
     flag: "https://flagcdn.com/de.svg",
     latitude: 51.1657,
     longitude: 10.4515,
+    areaKm2: 357588,
   },
   {
     name: "Singapore",
@@ -104,6 +110,7 @@ const DEFAULT_INITIAL_COUNTRIES: SearchResult[] = [
     flag: "https://flagcdn.com/sg.svg",
     latitude: 1.3521,
     longitude: 103.8198,
+    areaKm2: 728,
   },
   {
     name: "Japan",
@@ -116,6 +123,7 @@ const DEFAULT_INITIAL_COUNTRIES: SearchResult[] = [
     flag: "https://flagcdn.com/jp.svg",
     latitude: 36.2048,
     longitude: 138.2529,
+    areaKm2: 377975,
   },
 ];
 

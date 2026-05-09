@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const REST_COUNTRIES_URL =
-  "https://restcountries.com/v3.1/all?fields=name,cca2,cca3,region,subregion,capital,flags,latlng";
+  "https://restcountries.com/v3.1/all?fields=name,cca2,cca3,region,subregion,capital,flags,latlng,area";
 
 type RawCountry = {
   name?: {
@@ -19,6 +19,8 @@ type RawCountry = {
   };
   /** [latitude, longitude] from REST Countries */
   latlng?: number[];
+  /** Land area in km² */
+  area?: number;
 };
 
 type SearchResult = {
@@ -32,6 +34,8 @@ type SearchResult = {
   flag: string | null;
   latitude: number | null;
   longitude: number | null;
+  /** Land area in km² (for framing / zoom) */
+  areaKm2: number | null;
 };
 
 export const revalidate = 60 * 60 * 24;
@@ -85,6 +89,7 @@ export async function GET(request: NextRequest) {
         const latlng = country.latlng;
         const lat = latlng?.[0];
         const lng = latlng?.[1];
+        const area = country.area;
         return {
           name: country.name?.common ?? null,
           officialName: country.name?.official ?? null,
@@ -98,6 +103,10 @@ export async function GET(request: NextRequest) {
             typeof lat === "number" && Number.isFinite(lat) ? lat : null,
           longitude:
             typeof lng === "number" && Number.isFinite(lng) ? lng : null,
+          areaKm2:
+            typeof area === "number" && Number.isFinite(area) && area > 0
+              ? area
+              : null,
         };
       });
 

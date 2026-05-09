@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Map, MapControls, useMap } from "@/components/ui/map";
 import { Searchbar, type SearchResult } from "@/components/search-bar";
+import { flyToZoomForAreaKm2 } from "@/lib/map/fly-to-zoom";
 
 export type FlyToRequest = {
   longitude: number;
@@ -45,7 +46,7 @@ export function MapPanel() {
     setFlyToRequest((prev) => ({
       longitude: lon,
       latitude: lat,
-      zoom: 4,
+      zoom: flyToZoomForAreaKm2(country.areaKm2),
       key: (prev?.key ?? 0) + 1,
     }));
   }, []);
