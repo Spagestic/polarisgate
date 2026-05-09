@@ -1,5 +1,7 @@
 # Polaris Gate
 
+![Demo](/public/image.png)
+
 **An agentic immigration research interface visualized on an interactive 3D globe.**
 
 Describe your background and migration goals in plain English. Polaris Gate researches possible destinations, drops recommended countries onto a globe, and turns each result into an interactive pathway, document, source, and comparison UI.
@@ -144,15 +146,15 @@ If live API keys are missing or a request fails, the app falls back to seeded co
 
 ## Current Seeded Destinations
 
-| Country | Example route |
-| --- | --- |
-| Canada | Express Entry or study-to-PGWP-to-PR |
-| Australia | Skilled Independent, state nomination, or study-to-skilled route |
-| Germany | EU Blue Card, skilled worker visa, or study-to-work route |
-| New Zealand | Skilled Migrant Category or accredited employer route |
-| Portugal | Study, work, or residence route followed by long-term residence |
-| United Kingdom | Skilled Worker visa to settlement or graduate-to-skilled route |
-| Ireland | Critical Skills Employment Permit to long-term residence |
+| Country        | Example route                                                    |
+| -------------- | ---------------------------------------------------------------- |
+| Canada         | Express Entry or study-to-PGWP-to-PR                             |
+| Australia      | Skilled Independent, state nomination, or study-to-skilled route |
+| Germany        | EU Blue Card, skilled worker visa, or study-to-work route        |
+| New Zealand    | Skilled Migrant Category or accredited employer route            |
+| Portugal       | Study, work, or residence route followed by long-term residence  |
+| United Kingdom | Skilled Worker visa to settlement or graduate-to-skilled route   |
+| Ireland        | Critical Skills Employment Permit to long-term residence         |
 
 The agent can still research live sources for these countries; the seeded data exists to make the MVP reliable.
 
