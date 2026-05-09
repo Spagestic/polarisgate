@@ -2,6 +2,8 @@
 
 import * as React from "react";
 
+import { AppLogo } from "@/app/(home)/components/app-logo";
+import { NavMain } from "@/app/(home)/components/nav-main";
 import { NavUser } from "@/app/(home)/components/nav-user";
 import {
   Sidebar,
@@ -10,15 +12,10 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarHeader,
-  SidebarMenu,
   SidebarMenuButton,
-  SidebarMenuItem,
   SidebarTrigger,
-  useSidebar,
 } from "@/components/ui/sidebar";
 import {
-  TerminalIcon,
-  PanelLeftIcon,
   HelpCircle,
   EarthIcon,
   HeartIcon,
@@ -64,8 +61,12 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Note: I'm using state to show active item.
   // IRL you should use the url/router.
-  const [activeItem, setActiveItem] = React.useState(data.navMain[0]);
-  const { state, setOpen } = useSidebar();
+  const [activeItem, setActiveItem] = React.useState<{
+    title: string;
+    url: string;
+    icon: React.ReactNode;
+    isActive: boolean;
+  }>(data.navMain[0]);
   return (
     <Sidebar
       collapsible="icon"
@@ -80,64 +81,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         className="w-[calc(var(--sidebar-width-icon)+1px)]! border-r"
       >
         <SidebarHeader>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                size="lg"
-                className="md:h-8 md:p-0"
-                render={<a href="#" />}
-              >
-                <div
-                  className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground group"
-                  onClick={(e) => {
-                    if (state === "collapsed") {
-                      e.preventDefault();
-                      setOpen(true);
-                    }
-                  }}
-                  role={state === "collapsed" ? "button" : undefined}
-                >
-                  {state === "collapsed" ? (
-                    <>
-                      <TerminalIcon className="size-4 group-hover:hidden" />
-                      <PanelLeftIcon className="hidden group-hover:block size-4" />
-                    </>
-                  ) : (
-                    <TerminalIcon className="size-4" />
-                  )}
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">Acme Inc</span>
-                  <span className="truncate text-xs">Enterprise</span>
-                </div>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
+          <AppLogo />
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup>
             <SidebarGroupContent className="px-1.5 md:px-0">
-              <SidebarMenu>
-                {data.navMain.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      tooltip={{
-                        children: item.title,
-                        hidden: false,
-                      }}
-                      onClick={() => {
-                        setActiveItem(item);
-                        setOpen(true);
-                      }}
-                      isActive={activeItem?.title === item.title}
-                      className="px-2.5 md:px-2"
-                    >
-                      {item.icon}
-                      <span>{item.title}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
+              <NavMain
+                items={data.navMain}
+                activeItem={activeItem}
+                onItemClick={setActiveItem}
+              />
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
