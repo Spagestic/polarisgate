@@ -588,10 +588,21 @@ function MarkerPopup({
   }, [popup, popupOptions.offset, popupOptions.maxWidth]);
 
   useEffect(() => {
-    if (!forceOpen) return;
+    if (!map) return;
+    if (!forceOpen) {
+      if (popup.isOpen()) {
+        popup.remove();
+      }
+      return;
+    }
     if (popup.isOpen()) return;
-    marker.togglePopup();
-  }, [forceOpen, marker, popup]);
+    const timeoutId = window.setTimeout(() => {
+      if (popup.isOpen()) return;
+      popup.setLngLat(marker.getLngLat()).addTo(map);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [forceOpen, map, marker, popup]);
 
   const handleClose = () => popup.remove();
 
