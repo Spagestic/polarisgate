@@ -1,83 +1,27 @@
 "use client";
 
-import * as React from "react";
-
-import { AppLogo } from "@/app/(home)/components/app-logo";
-import { NavMain } from "@/app/(home)/components/nav-main";
-import { NavUser } from "@/app/(home)/components/nav-user";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarHeader,
-  SidebarMenuButton,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
-import {
-  HelpCircle,
-  EarthIcon,
-  HeartIcon,
-  ArrowRightLeftIcon,
-  HomeIcon,
   ArrowLeftIcon,
   ClockIcon,
+  EarthIcon,
   ExternalLinkIcon,
   FileCheckIcon,
   Loader2Icon,
   WalletIcon,
 } from "lucide-react";
+
 import type {
-  ApplicantProfile,
   CountryRecommendation,
   ResearchStatus,
 } from "@/lib/immigration/types";
 
-// This is sample data
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  navMain: [
-    {
-      title: "Home",
-      url: "#",
-      icon: <HomeIcon />,
-      isActive: true,
-    },
-    {
-      title: "Explore countries",
-      url: "#",
-      icon: <EarthIcon />,
-      isActive: false,
-    },
-    {
-      title: "Saved destinations",
-      url: "#",
-      icon: <HeartIcon />,
-      isActive: false,
-    },
-    {
-      title: "Compare countries",
-      url: "#",
-      icon: <ArrowRightLeftIcon />,
-      isActive: false,
-    },
-  ],
-};
-
-type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
-  recommendations?: CountryRecommendation[];
+type ExploreCountriesTabProps = {
+  recommendations: CountryRecommendation[];
   selectedCountryId?: string | null;
-  researchStatus?: ResearchStatus;
+  researchStatus: ResearchStatus;
   progressMessage?: string | null;
-  profile?: ApplicantProfile | null;
-  summary?: string | null;
   error?: string | null;
-  onSelectCountry?: (countryId: string | null) => void;
+  onSelectCountry: (countryId: string | null) => void;
 };
 
 function formatCurrency(value: number | null) {
@@ -160,7 +104,7 @@ function RecommendationDetails({
   onBack: () => void;
 }) {
   return (
-    <div className="space-y-4 p-4">
+    <div className="space-y-4">
       <button
         type="button"
         onClick={onBack}
@@ -263,37 +207,26 @@ function RecommendationDetails({
   );
 }
 
-function ResultsContent({
+export function ExploreCountriesTab({
   recommendations,
   selectedCountryId,
   researchStatus,
   progressMessage,
-  profile,
-  summary,
   error,
   onSelectCountry,
-}: Required<
-  Pick<
-    AppSidebarProps,
-    | "recommendations"
-    | "researchStatus"
-    | "onSelectCountry"
-  >
-> &
-  Pick<
-    AppSidebarProps,
-    "selectedCountryId" | "progressMessage" | "profile" | "summary" | "error"
-  >) {
+}: ExploreCountriesTabProps) {
   const selectedRecommendation = recommendations.find(
     (recommendation) => recommendation.id === selectedCountryId,
   );
 
   if (selectedRecommendation) {
     return (
-      <RecommendationDetails
-        recommendation={selectedRecommendation}
-        onBack={() => onSelectCountry(null)}
-      />
+      <div className="space-y-4 p-4">
+        <RecommendationDetails
+          recommendation={selectedRecommendation}
+          onBack={() => onSelectCountry(null)}
+        />
+      </div>
     );
   }
 
@@ -304,10 +237,10 @@ function ResultsContent({
   return (
     <div className="space-y-4 p-4">
       {researchStatus === "researching" ? (
-        <div className="rounded-xl border bg-muted/40 p-3">
+        <div className="bg-muted/40 rounded-xl border p-3">
           <div className="flex items-center gap-2 text-sm font-medium">
             <Loader2Icon className="size-4 animate-spin" />
-            Agent researching
+            Finding destinations
           </div>
           <p className="text-muted-foreground mt-2 text-sm leading-6">
             {progressMessage ?? "Finding official sources and ranking routes..."}
@@ -316,33 +249,8 @@ function ResultsContent({
       ) : null}
 
       {error ? (
-        <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+        <div className="border-destructive/30 bg-destructive/10 text-destructive rounded-xl border p-3 text-sm">
           {error}
-        </div>
-      ) : null}
-
-      {profile ? (
-        <div className="rounded-xl border p-3 text-sm">
-          <p className="font-medium">Applicant profile</p>
-          <p className="text-muted-foreground mt-1 leading-6">
-            {profile.age ? `${profile.age} years old` : "Age unknown"}
-            {profile.residenceCountry
-              ? `, resident of ${profile.residenceCountry}`
-              : ""}
-            {profile.savingsUsd
-              ? `, ${formatCurrency(profile.savingsUsd)} savings`
-              : ""}
-          </p>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {profile.goals.map((goal) => (
-              <span
-                key={goal}
-                className="bg-muted rounded-full px-2 py-1 text-xs"
-              >
-                {goal.replace("_", " ")}
-              </span>
-            ))}
-          </div>
         </div>
       ) : null}
 
@@ -366,102 +274,6 @@ function ResultsContent({
           </div>
         </div>
       ) : null}
-
-      {summary && researchStatus === "complete" ? (
-        <p className="text-muted-foreground text-sm leading-6">{summary}</p>
-      ) : null}
     </div>
-  );
-}
-
-export function AppSidebar({
-  recommendations = [],
-  selectedCountryId = null,
-  researchStatus = "idle",
-  progressMessage = null,
-  profile = null,
-  summary = null,
-  error = null,
-  onSelectCountry = () => undefined,
-  ...props
-}: AppSidebarProps) {
-  // Note: I'm using state to show active item.
-  // IRL you should use the url/router.
-  const [activeItem, setActiveItem] = React.useState<{
-    title: string;
-    url: string;
-    icon: React.ReactNode;
-    isActive: boolean;
-  }>(data.navMain[0]);
-  return (
-    <Sidebar
-      collapsible="icon"
-      className="overflow-hidden *:data-[sidebar=sidebar]:flex-row"
-      {...props}
-    >
-      {/* This is the first sidebar */}
-      {/* We disable collapsible and adjust width to icon. */}
-      {/* This will make the sidebar appear as icons. */}
-      <Sidebar
-        collapsible="none"
-        className="w-[calc(var(--sidebar-width-icon)+1px)]! border-r"
-      >
-        <SidebarHeader>
-          <AppLogo />
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupContent className="px-1.5 md:px-0">
-              <NavMain
-                items={data.navMain}
-                activeItem={activeItem}
-                onItemClick={setActiveItem}
-              />
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
-        <SidebarFooter>
-          <SidebarMenuButton
-            tooltip={{
-              children: "Help",
-              hidden: false,
-            }}
-          >
-            <HelpCircle className="size-4" />
-          </SidebarMenuButton>
-          <NavUser />
-        </SidebarFooter>
-      </Sidebar>
-
-      {/* This is the second sidebar */}
-      {/* We disable collapsible and let it fill remaining space */}
-      <Sidebar collapsible="none" className="hidden flex-1 md:flex">
-        <SidebarHeader className="gap-2 border-b p-4">
-          <div className="flex w-full items-center justify-between">
-            <div className="text-base font-medium text-foreground truncate">
-              {activeItem?.title}
-            </div>
-
-            <SidebarTrigger className="-mr-1" />
-          </div>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarGroup className="px-0">
-            <SidebarGroupContent>
-              <ResultsContent
-                recommendations={recommendations}
-                selectedCountryId={selectedCountryId}
-                researchStatus={researchStatus}
-                progressMessage={progressMessage}
-                profile={profile}
-                summary={summary}
-                error={error}
-                onSelectCountry={onSelectCountry}
-              />
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
-      </Sidebar>
-    </Sidebar>
   );
 }

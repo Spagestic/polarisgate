@@ -154,3 +154,67 @@ export const researchJobDocValidator = v.object({
   createdAt: v.number(),
   updatedAt: v.number(),
 });
+
+export const historyMessageValidator = v.object({
+  role: v.union(
+    v.literal("user"),
+    v.literal("assistant"),
+    v.literal("agent"),
+    v.literal("tool"),
+  ),
+  content: v.string(),
+});
+
+export const recommendationSourceValidator = v.object({
+  title: v.string(),
+  url: v.string(),
+  publisher: v.string(),
+});
+
+export const countryRecommendationValidator = v.object({
+  id: v.string(),
+  country: v.object({
+    name: v.string(),
+    officialName: v.union(v.string(), v.null()),
+    iso2: v.string(),
+    iso3: v.string(),
+    capital: v.union(v.string(), v.null()),
+    region: v.union(v.string(), v.null()),
+    subregion: v.union(v.string(), v.null()),
+    flag: v.union(v.string(), v.null()),
+    latitude: v.number(),
+    longitude: v.number(),
+    areaKm2: v.union(v.number(), v.null()),
+  }),
+  score: v.number(),
+  bestPathway: v.string(),
+  pathwayCategory: pathwayCategoryValidator,
+  summary: v.string(),
+  prTimelineMonths: v.array(v.number()),
+  citizenshipTimelineYears: v.union(v.array(v.number()), v.null()),
+  minSavingsUsd: v.union(v.number(), v.null()),
+  documents: v.array(v.string()),
+  eligibilityNotes: v.array(v.string()),
+  cautions: v.array(v.string()),
+  sources: v.array(recommendationSourceValidator),
+  confidence: v.union(
+    v.literal("seeded"),
+    v.literal("agent_draft"),
+    v.literal("verified"),
+  ),
+});
+
+export const searchHistoryArgsValidator = {
+  prompt: v.string(),
+  messages: v.array(historyMessageValidator),
+  recommendations: v.array(countryRecommendationValidator),
+  summary: v.union(v.string(), v.null()),
+};
+
+export const searchHistoryDocValidator = v.object({
+  _id: v.id("searchHistories"),
+  _creationTime: v.number(),
+  userId: v.id("users"),
+  ...searchHistoryArgsValidator,
+  createdAt: v.number(),
+});

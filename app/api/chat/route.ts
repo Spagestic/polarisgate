@@ -467,10 +467,23 @@ function buildRecommendation({
     typeof draft.score === "number"
       ? Math.min(99, Math.max(1, Math.round(draft.score)))
       : scoreCountry(country, profile);
+  const recommendationCountry: CountryRecommendation["country"] = {
+    name: country.name,
+    officialName: country.officialName,
+    iso2: country.iso2,
+    iso3: country.iso3,
+    capital: country.capital,
+    region: country.region,
+    subregion: country.subregion,
+    flag: country.flag,
+    latitude: country.latitude,
+    longitude: country.longitude,
+    areaKm2: country.areaKm2,
+  };
 
   return {
     id: country.id,
-    country,
+    country: recommendationCountry,
     score,
     bestPathway: draft.bestPathway || country.defaultPathway,
     pathwayCategory: country.pathwayCategory,

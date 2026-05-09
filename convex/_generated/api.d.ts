@@ -24,6 +24,7 @@ import type * as pinnedCountries from "../pinnedCountries.js";
 import type * as profiles from "../profiles.js";
 import type * as research from "../research.js";
 import type * as researchJobs from "../researchJobs.js";
+import type * as searchHistory from "../searchHistory.js";
 import type * as users from "../users.js";
 import type * as validators from "../validators.js";
 
@@ -50,6 +51,7 @@ declare const fullApi: ApiFromModules<{
   profiles: typeof profiles;
   research: typeof research;
   researchJobs: typeof researchJobs;
+  searchHistory: typeof searchHistory;
   users: typeof users;
   validators: typeof validators;
 }>;

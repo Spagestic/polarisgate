@@ -34,6 +34,14 @@ export function Marker({
   const timeline = recommendation
     ? `${recommendation.prTimelineMonths[0]}-${recommendation.prTimelineMonths[1]} mo to PR`
     : null;
+  const primaryReason = recommendation?.summary.split(/[.!?]/)[0]?.trim();
+  const caution = recommendation?.cautions[0];
+  const confidenceLabel =
+    recommendation?.confidence === "agent_draft"
+      ? "Live research"
+      : recommendation?.confidence === "verified"
+        ? "Verified"
+        : "Seeded";
 
   return (
     <MapMarker key={id} longitude={longitude} latitude={latitude}>
@@ -69,67 +77,77 @@ export function Marker({
         </div>
 
         <div className="space-y-2 p-3">
-          <div>
-            <h3 className="text-foreground leading-tight font-semibold">
-              {countryLabel}
-            </h3>
-          </div>
-
           {recommendation ? (
-            <div className="rounded-md border bg-emerald-50/80 p-2 text-xs text-emerald-950 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-100">
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-semibold">
-                  {recommendation.score}% fit
+            <div className="space-y-2.5">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-foreground leading-tight font-semibold">
+                    {countryLabel}
+                  </h3>
+                </div>
+                <span className="text-muted-foreground text-xs font-medium">
+                  {timeline}
                 </span>
-                {timeline ? <span>{timeline}</span> : null}
               </div>
-              <p className="mt-1 line-clamp-2">{recommendation.bestPathway}</p>
+
+              <div>
+                <p className="text-foreground line-clamp-1 text-sm font-medium">
+                  {recommendation.bestPathway}
+                </p>
+                {primaryReason ? (
+                  <p className="text-muted-foreground mt-1 line-clamp-3 text-xs leading-5">
+                    {primaryReason}.
+                  </p>
+                ) : null}
+              </div>
+
+              {caution ? (
+                <p className="text-muted-foreground border-border border-t pt-2 text-xs leading-5">
+                  Note: {caution}
+                </p>
+              ) : null}
             </div>
-          ) : null}
-
-          <div className="text-muted-foreground grid gap-1 text-sm">
-            {country.capital ? (
-              <div className="flex items-center gap-1.5">
-                <MapPin className="size-3.5" />
-                <span>Capital: {country.capital}</span>
+          ) : (
+            <>
+              <div>
+                <h3 className="text-foreground leading-tight font-semibold">
+                  {countryLabel}
+                </h3>
               </div>
-            ) : null}
 
-            {country.areaKm2 ? (
-              <div className="flex items-center gap-1.5">
-                <Ruler className="size-3.5" />
-                <span>Area: {country.areaKm2.toLocaleString()} km²</span>
+              <div className="text-muted-foreground grid gap-1 text-sm">
+                {country.capital ? (
+                  <div className="flex items-center gap-1.5">
+                    <MapPin className="size-3.5" />
+                    <span>Capital: {country.capital}</span>
+                  </div>
+                ) : null}
+
+                {country.areaKm2 ? (
+                  <div className="flex items-center gap-1.5">
+                    <Ruler className="size-3.5" />
+                    <span>Area: {country.areaKm2.toLocaleString()} km²</span>
+                  </div>
+                ) : null}
               </div>
-            ) : null}
-          </div>
 
-          <div className="flex items-center gap-2 pt-1 text-xs">
-            {country.iso2 ? (
-              <span className="bg-muted rounded px-2 py-1 font-medium uppercase">
-                {country.iso2}
-              </span>
-            ) : null}
-            {country.iso3 ? (
-              <span className="bg-muted rounded px-2 py-1 font-medium uppercase">
-                {country.iso3}
-              </span>
-            ) : null}
-            {!recommendation ? (
-              <span className="text-muted-foreground ml-auto">
-                {new Date(selectedAt).toLocaleTimeString()}
-              </span>
-            ) : null}
-          </div>
-
-          {recommendation ? (
-            <button
-              type="button"
-              onClick={() => onShowDetails?.(id)}
-              className="bg-foreground text-background hover:bg-foreground/90 w-full rounded-md px-3 py-2 text-sm font-medium transition-colors"
-            >
-              Show details
-            </button>
-          ) : null}
+              <div className="flex items-center gap-2 pt-1 text-xs">
+                {country.iso2 ? (
+                  <span className="bg-muted rounded px-2 py-1 font-medium uppercase">
+                    {country.iso2}
+                  </span>
+                ) : null}
+                {country.iso3 ? (
+                  <span className="bg-muted rounded px-2 py-1 font-medium uppercase">
+                    {country.iso3}
+                  </span>
+                ) : null}
+                <span className="text-muted-foreground ml-auto">
+                  {new Date(selectedAt).toLocaleTimeString()}
+                </span>
+              </div>
+            </>
+          )}
         </div>
       </MarkerPopup>
     </MapMarker>

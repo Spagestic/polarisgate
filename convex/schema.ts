@@ -151,4 +151,67 @@ export default defineSchema({
   })
     .index("by_countryId", ["countryId"])
     .index("by_status", ["status"]),
+  searchHistories: defineTable({
+    userId: v.id("users"),
+    prompt: v.string(),
+    messages: v.array(
+      v.object({
+        role: v.union(
+          v.literal("user"),
+          v.literal("assistant"),
+          v.literal("agent"),
+          v.literal("tool"),
+        ),
+        content: v.string(),
+      }),
+    ),
+    recommendations: v.array(
+      v.object({
+        id: v.string(),
+        country: v.object({
+          name: v.string(),
+          officialName: v.union(v.string(), v.null()),
+          iso2: v.string(),
+          iso3: v.string(),
+          capital: v.union(v.string(), v.null()),
+          region: v.union(v.string(), v.null()),
+          subregion: v.union(v.string(), v.null()),
+          flag: v.union(v.string(), v.null()),
+          latitude: v.number(),
+          longitude: v.number(),
+          areaKm2: v.union(v.number(), v.null()),
+        }),
+        score: v.number(),
+        bestPathway: v.string(),
+        pathwayCategory: v.union(
+          v.literal("skilled_worker"),
+          v.literal("study_to_pr"),
+          v.literal("employer_sponsored"),
+          v.literal("family"),
+          v.literal("investment"),
+        ),
+        summary: v.string(),
+        prTimelineMonths: v.array(v.number()),
+        citizenshipTimelineYears: v.union(v.array(v.number()), v.null()),
+        minSavingsUsd: v.union(v.number(), v.null()),
+        documents: v.array(v.string()),
+        eligibilityNotes: v.array(v.string()),
+        cautions: v.array(v.string()),
+        sources: v.array(
+          v.object({
+            title: v.string(),
+            url: v.string(),
+            publisher: v.string(),
+          }),
+        ),
+        confidence: v.union(
+          v.literal("seeded"),
+          v.literal("agent_draft"),
+          v.literal("verified"),
+        ),
+      }),
+    ),
+    summary: v.union(v.string(), v.null()),
+    createdAt: v.number(),
+  }).index("by_userId_and_createdAt", ["userId", "createdAt"]),
 });

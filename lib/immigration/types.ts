@@ -87,3 +87,19 @@ export type AgentUiEvent =
       type: "research_error";
       message: string;
     };
+
+export type ChatMessage = {
+  role: "user" | "assistant" | "agent" | "tool";
+  content: string;
+};
+
+export type SearchHistoryEntry = {
+  _id: string;
+  _creationTime: number;
+  userId: string;
+  prompt: string;
+  messages: ChatMessage[];
+  recommendations: CountryRecommendation[];
+  summary: string | null;
+  createdAt: number;
+};
