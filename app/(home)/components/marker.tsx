@@ -15,6 +15,7 @@ type CountryRichMarkerProps = {
   longitude: number;
   latitude: number;
   selectedAt: number;
+  popupResetKey: number;
 };
 
 export function Marker({
@@ -23,6 +24,7 @@ export function Marker({
   longitude,
   latitude,
   selectedAt,
+  popupResetKey,
 }: CountryRichMarkerProps) {
   const countryLabel = country.name ?? "Country";
 
@@ -33,7 +35,7 @@ export function Marker({
         <MarkerLabel position="bottom">{countryLabel}</MarkerLabel>
       </MarkerContent>
 
-      <MarkerPopup className="w-72 p-0">
+      <MarkerPopup key={`${id}-${popupResetKey}`} className="w-72 p-0">
         <div className="from-muted to-muted/60 flex h-28 items-center justify-center overflow-hidden rounded-t-md bg-linear-to-br">
           {country.flag ? (
             // eslint-disable-next-line @next/next/no-img-element

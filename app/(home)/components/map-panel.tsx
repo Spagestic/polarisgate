@@ -15,6 +15,7 @@ function MapFlyToBinder({ request }: { request: MapFlyToRequest | null }) {
 export function MapPanel() {
   const { markers, flyToRequest, handleSelectCountry } =
     useCountryMapSelection();
+  const popupResetKey = flyToRequest?.key ?? 0;
 
   return (
     <>
@@ -32,6 +33,7 @@ export function MapPanel() {
             longitude={marker.longitude}
             latitude={marker.latitude}
             selectedAt={marker.selectedAt}
+            popupResetKey={popupResetKey}
           />
         ))}
         <MapControls
