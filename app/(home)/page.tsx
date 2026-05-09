@@ -23,7 +23,13 @@ export default function Page() {
             />
           </div>
           <Map center={[18, 18]} zoom={1.5} projection={{ type: "globe" }}>
-            <MapControls showCompass showFullscreen />
+            <MapControls
+              position="bottom-right"
+              showZoom
+              // showCompass
+              showLocate
+              showFullscreen
+            />
           </Map>
         </div>
       </SidebarInset>
