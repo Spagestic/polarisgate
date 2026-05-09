@@ -62,13 +62,31 @@ function sanitizeJson(text: string) {
   return text.match(/```(?:json)?\s*([\s\S]*?)```/)?.[1] ?? text;
 }
 
-function normalizeSearchResults(payload: unknown): SearchSource[] {
+function searchRecordsFromPayload(payload: unknown) {
   const records =
     typeof payload === "object" && payload !== null && "data" in payload
       ? (payload as { data?: unknown }).data
       : payload;
 
-  if (!Array.isArray(records)) return [];
+  if (Array.isArray(records)) return records;
+
+  if (typeof records === "object" && records !== null) {
+    const result = records as {
+      web?: unknown;
+      results?: unknown;
+      data?: unknown;
+    };
+
+    for (const candidate of [result.web, result.results, result.data]) {
+      if (Array.isArray(candidate)) return candidate;
+    }
+  }
+
+  return [];
+}
+
+function normalizeSearchResults(payload: unknown): SearchSource[] {
+  const records = searchRecordsFromPayload(payload);
 
   return records
     .map((record): SearchSource | null => {
@@ -287,6 +305,18 @@ export const discoverCountries = action({
           ...countrySources,
           ...broadSources,
         ]);
+      const displaySources =
+        sources.length > 0
+          ? sources
+          : candidate.officialImmigrationUrl
+            ? [
+                {
+                  title: `${candidate.countryName} official immigration`,
+                  url: candidate.officialImmigrationUrl,
+                  publisher: publisherFromUrl(candidate.officialImmigrationUrl),
+                },
+              ]
+            : [];
 
         return {
           id:
@@ -296,7 +326,7 @@ export const discoverCountries = action({
           iso2: candidate.iso2.toUpperCase(),
           iso3: candidate.iso3.toUpperCase(),
           officialImmigrationUrl:
-            candidate.officialImmigrationUrl || sources[0]?.url || "",
+            candidate.officialImmigrationUrl || displaySources[0]?.url || "",
           defaultPathway: candidate.defaultPathway,
           pathwayCategory: candidate.pathwayCategory,
           prTimelineMonths: normalizeNumberPair(candidate.prTimelineMonths),
@@ -321,7 +351,7 @@ export const discoverCountries = action({
           cautions: candidate.cautions?.length
             ? candidate.cautions.slice(0, 6)
             : ["Immigration rules change frequently; verify before applying."],
-          sources,
+          sources: displaySources,
         };
       }),
     );
