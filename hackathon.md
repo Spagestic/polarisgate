@@ -8,15 +8,11 @@ Through rigorous **technical architecture evaluation** and **social impact asses
 
 ## Track Overview
 
-![AI Agent Track](https://hackathon.googdg.cn/static/image/ai_agent.webp)
-
 ### Track A: AI Agent
 
 Build autonomous AI agents with Gemma 4 capabilities in multi-step planning, tool usage, and native function calling.
 
 Examples: medical pre-screening assistant, legal document agent, industrial inspection agent, and education tutoring bot.
-
-![Multimodal Track](https://hackathon.googdg.cn/static/image/multimodal.webp)
 
 ### Track B: Multimodal
 
@@ -24,15 +20,11 @@ Deeply integrate vision, audio, and language to deliver truly multimodal experie
 
 Examples: cultural heritage digitization, tools for visually impaired users, and mixed-format document Q&A.
 
-![Edge AI Track](https://hackathon.googdg.cn/static/image/edge_ai.webp)
-
 ### Track C: Edge AI
 
 Hardcore challenge: fully offline deployment of E2B/E4B-class models on phones, Raspberry Pi, or embedded hardware (real device demo required).
 
 Examples: rural healthcare assistant, privacy-preserving local OCR, and low-power crop disease monitoring.
-
-![AI for Social Good Track](https://hackathon.googdg.cn/static/image/ai_for_social_good.webp)
 
 ### Track D: AI for Social Good
 
