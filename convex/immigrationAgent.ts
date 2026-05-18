@@ -2,6 +2,11 @@
 
 import { v } from "convex/values";
 import { action } from "./_generated/server";
+import {
+  countryDiscoveryResponseSchema,
+  generateGemmaJson,
+  parseModelJson,
+} from "../lib/agent/gemini";
 import { getFirecrawlClient } from "./firecrawl/client";
 
 const pathwayCategoryValidator = v.union(
@@ -46,7 +51,7 @@ type SearchSource = {
 
 type Candidate = typeof candidateValidator.type;
 
-type MistralCandidate = Omit<Candidate, "sources"> & {
+type DiscoveredCandidate = Omit<Candidate, "sources"> & {
   sourceUrls?: string[];
 };
 
@@ -56,10 +61,6 @@ function publisherFromUrl(url: string) {
   } catch {
     return "Official source";
   }
-}
-
-function sanitizeJson(text: string) {
-  return text.match(/```(?:json)?\s*([\s\S]*?)```/)?.[1] ?? text;
 }
 
 function searchRecordsFromPayload(payload: unknown) {
@@ -152,90 +153,39 @@ async function extractCandidatesWithModel({
   prompt: string;
   sources: SearchSource[];
 }) {
-  const mistralApiKey = process.env.MISTRAL_API_KEY;
-  if (!mistralApiKey) {
-    throw new Error("MISTRAL_API_KEY must be set for dynamic country discovery.");
-  }
+  const sourceDigest = sources.map((source) => ({
+    title: source.title,
+    url: source.url,
+    snippet: source.snippet.slice(0, 800),
+  }));
 
-  const response = await fetch("https://api.mistral.ai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      authorization: `Bearer ${mistralApiKey}`,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "mistral-medium-3-5",
-      temperature: 0.2,
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are an immigration research agent. Choose suitable migration destination countries from web evidence, not from a fixed list. Return strict JSON only. Avoid legal certainty.",
-        },
-        {
-          role: "user",
-          content: JSON.stringify({
-            userPrompt: prompt,
-            instructions: [
-              "Return 3 to 5 destination countries.",
-              "Use the user's goals, budget, age, residence/citizenship, languages, occupation, and region preferences.",
-              "Prefer official immigration source URLs when available.",
-              "Do not always choose common countries; pick what fits the prompt.",
-              "Use ISO2 and ISO3 country codes.",
-              "Estimate timelines conservatively as two-number arrays.",
-            ],
-            schema: {
-              countries: [
-                {
-                  id: "lowercase kebab-case country id",
-                  countryName: "country common name",
-                  iso2: "ISO 3166-1 alpha-2",
-                  iso3: "ISO 3166-1 alpha-3",
-                  officialImmigrationUrl: "best official immigration URL",
-                  defaultPathway: "primary pathway name",
-                  pathwayCategory:
-                    "skilled_worker | study_to_pr | employer_sponsored | family | investment",
-                  prTimelineMonths: "[min, max]",
-                  citizenshipTimelineYears: "[min, max] or null",
-                  minSavingsUsd: "number or null",
-                  score: "number 1-99",
-                  summary: "2 concise sentences",
-                  documents: "string[]",
-                  eligibilityNotes: "string[]",
-                  cautions: "string[]",
-                  sourceUrls: "string[] of URLs from supplied evidence or official websites",
-                },
-              ],
-            },
-            sources,
-          }),
-        },
-      ],
-      response_format: { type: "json_object" },
-    }),
+  const content = await generateGemmaJson({
+    systemInstruction:
+      "You are an immigration research agent. Pick 3-5 suitable destination countries from the web evidence. Output only JSON matching the response schema. Do not use markdown, bullet lists, or conversational text. Avoid legal certainty.",
+    userContent: [
+      "Immigration request:",
+      prompt,
+      "",
+      "Web evidence (JSON):",
+      JSON.stringify(sourceDigest),
+      "",
+      "Rules:",
+      "- Match the user's goals, budget, age, residence, languages, occupation, and region preferences.",
+      "- Prefer official immigration URLs from the evidence when possible.",
+      "- Use valid ISO2 and ISO3 codes.",
+      "- Estimate timelines conservatively as [min, max] number arrays.",
+    ].join("\n"),
+    temperature: 0.2,
+    responseSchema: countryDiscoveryResponseSchema,
   });
 
-  if (!response.ok) {
-    throw new Error("Country discovery model call failed.");
-  }
-
-  const payload = (await response.json()) as {
-    choices?: { message?: { content?: string } }[];
-  };
-  const content = payload.choices?.[0]?.message?.content;
-  if (!content) {
-    throw new Error("Country discovery returned no content.");
-  }
-
-  const parsed = JSON.parse(sanitizeJson(content)) as {
-    countries?: MistralCandidate[];
-  };
+  const parsed = parseModelJson<{ countries?: DiscoveredCandidate[] }>(content);
 
   return Array.isArray(parsed.countries) ? parsed.countries : [];
 }
 
 function sourceLinksForCandidate(
-  candidate: MistralCandidate,
+  candidate: DiscoveredCandidate,
   sources: SearchSource[],
 ) {
   const urls = new Set(candidate.sourceUrls ?? []);

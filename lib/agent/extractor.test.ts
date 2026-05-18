@@ -3,8 +3,8 @@ import { extractPathwayDraft } from "./extractor";
 
 describe("extractPathwayDraft", () => {
   test("returns a safe fallback draft without an AI key", async () => {
-    const previousApiKey = process.env.MISTRAL_API_KEY;
-    delete process.env.MISTRAL_API_KEY;
+    const previousApiKey = process.env.GEMINI_API_KEY;
+    delete process.env.GEMINI_API_KEY;
 
     try {
       const pathway = await extractPathwayDraft({
@@ -25,9 +25,9 @@ describe("extractPathwayDraft", () => {
       expect(pathway.documents.length).toBeGreaterThan(0);
     } finally {
       if (previousApiKey === undefined) {
-        delete process.env.MISTRAL_API_KEY;
+        delete process.env.GEMINI_API_KEY;
       } else {
-        process.env.MISTRAL_API_KEY = previousApiKey;
+        process.env.GEMINI_API_KEY = previousApiKey;
       }
     }
   });

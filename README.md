@@ -34,7 +34,7 @@ The current MVP is a generative UI prototype:
 - 📋 **Explore Countries Tab** — Full pathway details, documents, eligibility notes, cautions, sources, and economic snapshot.
 - 🕘 **History Tab** — Convex-backed saved searches with prompt, messages, recommendations, and summaries.
 - 📊 **Compare Countries Tab** — Side-by-side quantitative cards using latest available World Bank indicators.
-- 🔎 **Live Research + Fallbacks** — Firecrawl/Mistral are used when keys are configured; seeded recommendations keep the demo usable without them.
+- 🔎 **Live Research + Fallbacks** — Firecrawl/Gemma 4 are used when keys are configured; seeded recommendations keep the demo usable without them.
 - 🔒 **Convex Auth + Data** — Convex Auth powers users, and Convex stores search history and related app data.
 
 ---
@@ -45,7 +45,7 @@ The current MVP is a generative UI prototype:
 - **Map**: [MapLibre GL](https://maplibre.org/) through local map UI components
 - **Database & Real-time**: [Convex](https://convex.dev)
 - **Auth**: [Convex Auth](https://labs.convex.dev/auth)
-- **AI / Research**: Mistral AI + Firecrawl
+- **AI / Research**: Gemma 4 (`gemma-4-31b-it` via Gemini API) + Firecrawl
 - **Economic Indicators**: World Bank API
 - **UI**: React, Tailwind CSS, shadcn-style components, Lucide icons
 
@@ -58,7 +58,7 @@ The current MVP is a generative UI prototype:
 - **Node.js** `>=20.x`
 - **Bun** or **npm**
 - A **Convex** account — [sign up free](https://dashboard.convex.dev/)
-- An **Mistral AI** API key — [console.mistral.ai](https://console.mistral.ai/)
+- A **Google AI (Gemini API)** key for Gemma 4 — [Google AI Studio](https://aistudio.google.com/apikey)
 - _(Optional but recommended)_ A **Firecrawl** API key — [firecrawl.dev](https://firecrawl.dev)
 
 ---
@@ -102,8 +102,8 @@ Then fill in your keys:
 CONVEX_DEPLOYMENT=dev:your-project-name
 NEXT_PUBLIC_CONVEX_URL=https://your-project.convex.cloud
 
-# Mistral AI
-MISTRAL_API_KEY=...      # https://console.mistral.ai/
+# Gemma 4 (Gemini API)
+GEMINI_API_KEY=...       # https://aistudio.google.com/apikey
 
 # Web retrieval
 FIRECRAWL_API_KEY=...   # https://firecrawl.dev
@@ -135,7 +135,7 @@ npx convex codegen
 2. **Profile parsed** → the route extracts goals, age, savings, and other profile signals.
 3. **Country shortlist built** → candidate destinations are ranked against the user's goals.
 4. **Research sources fetched** → Firecrawl searches/scrapes official-looking immigration sources when `FIRECRAWL_API_KEY` is available.
-5. **Pathway draft extracted** → Mistral turns source snippets into a structured pathway summary when `MISTRAL_API_KEY` is available.
+5. **Pathway draft extracted** → Gemma 4 turns source snippets into a structured pathway summary when `GEMINI_API_KEY` is available.
 6. **Economic metrics added** → World Bank indicators are fetched for GDP, GDP per capita, GDP growth, inflation, unemployment, population, and income level.
 7. **UI events stream back** → the frontend progressively adds agent trace messages, map markers, and sidebar details.
 8. **History saved** → completed searches are stored in Convex through `convex/searchHistory.ts`.
